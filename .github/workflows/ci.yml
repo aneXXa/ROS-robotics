@@ -1,0 +1,36 @@
+name: ROS2 CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ros_distro: [lyrical]  # укажите дистрибутив, используемый в курсе
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup ROS2
+        uses: ros-tooling/setup-ros@v0.7
+        with:
+          required-ros-distributions: ${{ matrix.ros_distro }}
+
+      - name: Build and test
+        uses: ros-tooling/action-ros-ci@v0.4
+        with:
+          package-name: my_package  # имя пакета из package.xml
+          target-ros2-distro: ${{ matrix.ros_distro }}
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: colcon-logs
+          path: ros_ws/log
+        if: always()
