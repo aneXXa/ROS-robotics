@@ -1,36 +1,33 @@
-name: ROS2 CI
+name: ROS checks
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+on: [push, pull_request]
+
+env:
+  COURSE_KIT_URL: https://ros.lms.ci.nsu.ru/downloads/robotics-course-kit-v1-w01-57866a9c98fa.tar.gz
+  COURSE_KIT_SHA256: 57866a9c98fa3abdec27b35a180697ee680bfb0f05cc015970ce306d6d849fea
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        ros_distro: [lyrical]  # укажите дистрибутив, используемый в курсе
-
+    container:
+      image: osrf/ros:jazzy-desktop-full@sha256:d16957210572c5f919f3f9bd2fb0cc24a82542647489d8b8eda7c3beda31305f
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup ROS2
-        uses: ros-tooling/setup-ros@v0.7
+      - uses: actions/checkout@v4
         with:
-          required-ros-distributions: ${{ matrix.ros_distro }}
+          fetch-depth: 0
 
-      - name: Build and test
-        uses: ros-tooling/action-ros-ci@v0.4
-        with:
-          package-name: my_package  # имя пакета из package.xml
-          target-ros2-distro: ${{ matrix.ros_distro }}
+      - name: Validate environment JSON
+        shell: bash
+        run: python3 -m json.tool evidence/pr01/environment.json > /dev/null
 
-      - name: Upload logs
-        uses: actions/upload-artifact@v4
-        with:
-          name: colcon-logs
-          path: ros_ws/log
-        if: always()
+      - name: Download course kit
+        shell: bash
+        run: |
+          curl -fsSLo course-kit.tar.gz "$COURSE_KIT_URL"
+          printf '%s  %s\n' "$COURSE_KIT_SHA256" course-kit.tar.gz | sha256sum -c -
+          mkdir -p .course-kit
+          tar -xzf course-kit.tar.gz -C .course-kit
+
+      - name: Check PR evidence
+        shell: bash
+        run: python3 .course-kit/v1/tools/check_practice.py PR01 --submission .
