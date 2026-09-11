@@ -1,0 +1,19 @@
+# Course kit
+.course-kit/
+robotics-course-kit-*.tar.gz
+robotics-course-kit-*.sha256.txt
+
+# ROS2 build artifacts
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
