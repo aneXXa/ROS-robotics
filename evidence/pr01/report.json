@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "practice_id": "PR01",
+  "commit": "4a1ea79fee044a6489dadc7e190cde02da41421f",
+  "course_kit": {
+    "version": "v1-w01",
+    "archive_sha256": "57866a9c98fa3abdec27b35a180697ee680bfb0f05cc015970ce306d6d849fea"
+  },
+  "commands": [
+    "source /opt/ros/lyrical/setup.bash",
+    "export ROS_DOMAIN_ID=16",
+    "ros2 run turtlesim turtlesim_node",
+    "ros2 run turtlesim turtle_teleop_key",
+    "ros2 node list --no-daemon --spin-time 2",
+    "ros2 topic list -t",
+    "ros2 node info /turtlesim",
+    "ros2 topic type /turtle1/pose",
+    "POSE_TYPE=$(ros2 topic type /turtle1/pose)",
+    "ros2 topic echo /turtle1/pose --once",
+    "ros2 topic hz /turtle1/pose",
+    "export ROS_DOMAIN_ID=17 && ros2 run turtlesim turtle_teleop_key",
+    "timeout 5s ros2 topic echo /turtle1/pose \"$POSE_TYPE\" --once > evidence/pr01/pose-broken.txt 2>&1",
+    "export ROS_DOMAIN_ID=16 && ros2 run turtlesim turtle_teleop_key",
+    "timeout 5s ros2 topic echo /turtle1/pose \"$POSE_TYPE\" --once > evidence/pr01/pose-fixed.txt 2>&1",
+    "python3 -m json.tool evidence/pr01/environment.json > /dev/null",
+    "python3 .course-kit/v1/tools/check_practice.py PR01 --submission ."
+  ],
+  "tests": [
+    {
+      "name": "graph: node list shows /turtlesim and /teleop_turtle on domain 16",
+      "status": "passed"
+    },
+    {
+      "name": "graph: topic list includes /turtle1/cmd_vel Twist and /turtle1/pose turtlesim_msgs/msg/Pose",
+      "status": "passed"
+    },
+    {
+      "name": "frequency: ros2 topic hz /turtle1/pose ~62.500 Hz over ~55 s",
+      "status": "passed"
+    },
+    {
+      "name": "link broken: domain 17 sees only /teleop_turtle, pose-broken exit=124",
+      "status": "passed"
+    },
+    {
+      "name": "link restored: domain 16 sees both nodes, pose-fixed exit=0",
+      "status": "passed"
+    },
+    {
+      "name": "check_practice.py PR01 --submission .",
+      "status": "passed"
+    }
+  ],
+  "defect": {
+    "reproducer": "Симулятор в ROS_DOMAIN_ID=16, teleop перезапущен с ROS_DOMAIN_ID=17. Стрелки не двигают черепаху. В C: export ROS_DOMAIN_ID=17; ros2 node list --no-daemon --spin-time 2 показывает только /teleop_turtle; timeout 5s ros2 topic echo /turtle1/pose \"$POSE_TYPE\" --once → evidence/pr01/pose-broken.txt, exit=124.",
+    "root_cause": "ROS_DOMAIN_ID задаёт изолированный DDS-домен и читается при старте процесса. Ноды в 16 и 17 не обнаруживают друг друга. Смена переменной в живом шелле не меняет уже запущенный симулятор.",
+    "proof_after": "Teleop перезапущен с ROS_DOMAIN_ID=16. В C: ros2 node list --no-daemon --spin-time 2 показывает /teleop_turtle и /turtlesim; timeout 5s ros2 topic echo /turtle1/pose \"$POSE_TYPE\" --once → evidence/pr01/pose-fixed.txt, exit=0. Стрелки снова двигают черепаху."
+  },
+  "claims": {
+    "public_tests_passed": true,
+    "defect_reproduced": true,
+    "defect_fixed": true
+  },
+  "time": {
+    "contact_academic_hours": 2,
+    "self_study_hours": 3
+  },
+  "ai_used": true
+}
