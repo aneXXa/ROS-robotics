@@ -1,12 +1,28 @@
 # PR01: Граф ROS 2
 
+[Среда](environment.json) · [ROS Doctor](doctor.txt) · [README](../../README.md)
+
+Перед запуском в каждом терминале:
+
+```bash
+source /opt/ros/lyrical/setup.bash
+export ROS_DOMAIN_ID=16
+export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
+```
+
+`LOCALHOST` выставлен **после** `source`: хук Lyrical иначе снова ставит
+`SUBNET`, а на этой WSL-сети multicast discovery часто не склеивает локальные
+ноды. `--no-daemon` в проверках ниже исключает кэш `ros2`-daemon.
+
 ## Исправный граф (ROS_DOMAIN_ID=16)
 
-Среда наблюдения: `source /opt/ros/lyrical/setup.bash`, затем
-`ROS_DOMAIN_ID=16`, `ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST`.
-Терминал A — `ros2 run turtlesim turtlesim_node`.
-Терминал B — `ros2 run turtlesim turtle_teleop_key` (фокус на B, стрелки).
-Терминал C — команды ниже.
+| Терминал | Роль | Команда |
+|---|---|---|
+| A | симулятор | `ros2 run turtlesim turtlesim_node` |
+| B | teleop | `ros2 run turtlesim turtle_teleop_key` |
+| C | наблюдение | CLI ниже |
+
+Все три — домен **16**. Стрелки в B двигают черепаху.
 
 ### Команды и вывод
 
@@ -15,6 +31,10 @@ $ ros2 node list --no-daemon --spin-time 2
 /teleop_turtle
 /turtlesim
 ```
+
+`node list` показывает участников домена.
+В списке нет временных CLI-нод `echo`/`hz`: они появляются только пока
+идёт соответствующая команда.
 
 ```powershell
 $ ros2 topic list -t
@@ -58,6 +78,10 @@ $ ros2 node info /turtlesim
   Action Clients:
 ```
 
+Издатель `/turtle1/cmd_vel` — `/teleop_turtle`, подписчик — `/turtlesim`.
+Teleop на позу не подписывается: для клавиатуры обратная связь по `/pose`
+не нужна.
+
 ```powershell
 $ ros2 topic type /turtle1/pose
 turtlesim_msgs/msg/Pose
@@ -72,60 +96,87 @@ angular_velocity: 0.0
 ---
 ```
 
-Черепаха неподвижна (`linear_velocity` / `angular_velocity` = 0), поза всё равно публикуется.
+Тип Lyrical — `turtlesim_msgs/msg/Pose`.
 
-```text
+```powershell
 $ ros2 topic hz /turtle1/pose
 WARNING: topic [/turtle1/pose] does not appear to be published yet
 average rate: 62.513
         min: 0.015s max: 0.017s std dev: 0.00051s window: 62
+…
 average rate: 62.500
         min: 0.012s max: 0.021s std dev: 0.00059s window: 3439
 ```
 
-Замер: ~55 с (окно 3439 сообщений / 62.5 Гц). \
-Фактическая частота: **62.500 Гц** (диапазон по ходу замера 62.486–62.513 Гц).
-Ориентир turtlesim — таймер 16 мс ≈ 62.5 Гц.
+Замер остановлен после ~55 с (окно 3439 ≈ 62.5 Гц).
+Ориентир таймера turtlesim 16 мс ≈ 62.5 Гц; фактическая частота **62.500 Гц**.
+
+### Схема основных потоков
+
+```text
+стрелки (фокус в терминале B)
+        │
+        ▼
+  /teleop_turtle
+        │  /turtle1/cmd_vel  [geometry_msgs/msg/Twist]
+        ▼
+  /turtlesim  ──► окно: движение и след
+        │  /turtle1/pose  [turtlesim_msgs/msg/Pose]
+        ├──► ros2 topic echo … --once
+        └──► ros2 topic hz …
+```
 
 ### Ноды и роли
 
 | Нода | Роль |
 |---|---|
-| `/turtlesim` | Симулятор. Подписывается на команду движения `/turtle1/cmd_vel`, публикует позу `/turtle1/pose` и цвет `/turtle1/color_sensor`. Сервисы spawn/kill/reset/clear/set_pen/teleport, action `/turtle1/rotate_absolute`. |
-| `/teleop_turtle` | Клавиатурное управление. Публикует `geometry_msgs/msg/Twist` в `/turtle1/cmd_vel`, пока фокус в терминале B. |
+| `/turtlesim` | Симулятор. Подписывается на `/turtle1/cmd_vel`, публикует `/turtle1/pose` и `/turtle1/color_sensor`. Сервисы spawn/kill/reset/clear/set_pen/teleport, action `/turtle1/rotate_absolute`. |
+| `/teleop_turtle` | Читает клавиши терминала B и публикует `Twist` в `/turtle1/cmd_vel`. |
 
-### Топики (полные имена и типы)
+### Топики
 
-| Топик | Тип | Назначение |
-|---|---|---|
-| `/turtle1/cmd_vel` | `geometry_msgs/msg/Twist` | Команда движения: `/teleop_turtle` → `/turtlesim` |
-| `/turtle1/pose` | `turtlesim_msgs/msg/Pose` | Поза черепахи (Lyrical; не `turtlesim/msg/Pose`) |
-| `/turtle1/color_sensor` | `turtlesim_msgs/msg/Color` | Цвет под черепахой |
-| `/parameter_events` | `rcl_interfaces/msg/ParameterEvent` | События параметров |
-| `/rosout` | `rcl_interfaces/msg/Log` | Лог |
+| Топик | Тип | Издатель → получатель в этом опыте | Назначение |
+|---|---|---|---|
+| `/turtle1/cmd_vel` | `geometry_msgs/msg/Twist` | `/teleop_turtle` → `/turtlesim` | Линейная и угловая скорость |
+| `/turtle1/pose` | `turtlesim_msgs/msg/Pose` | `/turtlesim` → CLI `echo` / `hz` | Положение, угол, скорости |
+| `/turtle1/color_sensor` | `turtlesim_msgs/msg/Color` | `/turtlesim` → в опыте не использован | Цвет под черепахой |
+| `/parameter_events` | `rcl_interfaces/msg/ParameterEvent` | обе ноды | События параметров |
+| `/rosout` | `rcl_interfaces/msg/Log` | обе ноды | Служебный лог |
 
 ### Измеренная частота `/turtle1/pose`
 
-- **62.500 Гц**
-- Длительность замера: **~55 с**
-- Последнее окно: min 0.012 с, max 0.021 с, std 0.00059 с, 3439 сообщений
-- Совпадает с таймером turtlesim 16 мс
+| Параметр | Значение |
+|---|---|
+| Средняя частота | **62.500 Гц** (диапазон по ходу 62.486–62.513) |
+| Длительность | ~55 с |
+| Последнее окно | min 0.012 с, max 0.021 с, std 0.00059 с, 3439 сообщений |
+| Вывод | Совпадает с таймером 16 мс; поза идёт и у неподвижной черепахи |
 
 ## Разрыв и восстановление связи
 
+`POSE_TYPE` уже хранит `turtlesim_msgs/msg/Pose` со стадии выше. В чужом
+домене CLI не узнает тип у издателя, поэтому тип передаётся явно.
+Симулятор A не перезапускался и всё время оставался в домене 16.
+
 ### До (оба в домене 16)
 
-| Участник | Домен | Виден в графе 16 |
+| Участник | Домен | Виден из C (16) |
 |---|---|---|
 | `/turtlesim` (A) | 16 | да |
 | `/teleop_turtle` (B) | 16 | да |
-| CLI (C) | 16 | видит обе ноды |
+| CLI (C) | 16 | обе ноды |
 
-Стрелки в B двигают черепаху. Поза приходит (`pose` echo, exit=0).
+Управление работает. Поза приходит.
 
 ### Сбой (teleop и CLI в домене 17)
 
-В B: Ctrl+C, `export ROS_DOMAIN_ID=17`, снова `ros2 run turtlesim turtle_teleop_key`.
+В B: `Ctrl+C`, затем:
+
+```bash
+export ROS_DOMAIN_ID=17
+ros2 run turtlesim turtle_teleop_key
+```
+
 В C:
 
 ```powershell
@@ -138,7 +189,8 @@ $ printf 'exit=%s\n' "$?"
 exit=124
 ```
 
-`pose-broken.txt`: `!rclpy.ok()` — `timeout` оборвал ожидание, сообщение не пришло.
+Содержимое [pose-broken.txt](pose-broken.txt): только `!rclpy.ok()` —
+`timeout` оборвал ожидание, сообщения Pose не было.
 
 | Участник | Домен | Виден из C (17) |
 |---|---|---|
@@ -146,14 +198,12 @@ exit=124
 | `/teleop_turtle` (B) | 17 | да |
 | CLI (C) | 17 | только `/teleop_turtle` |
 
-Стрелки не двигают черепаху: `cmd_vel` уходит в домен 17, подписчик симулятора слушает домен 16. Позы в 17 нет — издатель `/turtle1/pose` остался в 16. Тип пришлось передать явно (`$POSE_TYPE`): в чужом домене CLI не узнает его у издателя.
+Стрелки не двигают черепаху: `cmd_vel` публикуется в домене 17, подписчик
+симулятора слушает домен 16. Издателя `/turtle1/pose` в 17 нет.
 
 ### После (teleop снова в домене 16)
 
-В B: Ctrl+C, `export ROS_DOMAIN_ID=16`, снова teleop.
-В C:
-
-```text
+```powershell
 $ export ROS_DOMAIN_ID=16
 $ ros2 node list --no-daemon --spin-time 2
 /teleop_turtle
@@ -164,7 +214,8 @@ $ printf 'exit=%s\n' "$?"
 exit=0
 ```
 
-`pose-fixed.txt` — одно сообщение `turtlesim_msgs/msg/Pose` (черепаха неподвижна, скорости 0). Стрелки снова двигают черепаху.
+[pose-fixed.txt](pose-fixed.txt) — одно сообщение Pose
+(`x≈0.45`, `y≈6.53`, `theta≈-2.13`, скорости 0). Стрелки снова двигают черепаху.
 
 | Участник | Домен | Виден из C (16) |
 |---|---|---|
@@ -172,9 +223,13 @@ exit=0
 | `/teleop_turtle` (B) | 16 | да |
 | CLI (C) | 16 | обе ноды |
 
-### Коды возврата
+### Сравнение до / сбой / после
 
-| Файл | Домен CLI | Ноды | Поза | exit |
-|---|---|---|---|---|
-| `evidence/pr01/pose-broken.txt` | 17 | только `/teleop_turtle` | нет (`!rclpy.ok()`) | **124** (таймаут 5 с) |
-| `evidence/pr01/pose-fixed.txt` | 16 | `/teleop_turtle`, `/turtlesim` | да | **0** |
+| Проверка | Исправно | Разрыв | Восстановлено |
+|---|---|---|---|
+| Домен A / B / C | 16 / 16 / 16 | 16 / 17 / 17 | 16 / 16 / 16 |
+| Ноды, видимые в C | teleop и turtlesim | только teleop | teleop и turtlesim |
+| `topic echo` позы в C | поза получена | таймаут 5 с | поза в `pose-fixed.txt` |
+| Код `timeout` | — | **124** | **0** |
+| Управление стрелками | работает | не работает | работает |
+| Файл | — | [pose-broken.txt](pose-broken.txt) | [pose-fixed.txt](pose-fixed.txt) |
