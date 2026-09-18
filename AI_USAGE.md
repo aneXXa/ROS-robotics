@@ -1,8 +1,10 @@
 # Декларация использования ИИ
 
 - Использован ИИ: да
-- Модель и версия: Cursor Grok 4.6
+- Модель и версия: Cursor Agent
 - Среда или интерфейс агента: Cursor IDE
-- Затронутые компоненты: диагностика DDS/WSL, `evidence/pr01/graph.md`, `environment.json`, `report.json`, `AI_USAGE.md`, README
-- Характер помощи: разбор, оформление evidence по выводу терминала C
-- Как результат был проверен независимо: `ros2 node list --no-daemon`, `timeout … topic echo`, коды 124/0, `pose-broken.txt` / `pose-fixed.txt`, `ros2 topic hz`
+- Затронутые компоненты: `turtle_bringup`, `evidence/pr02/*`, README, CI workflow, `AI_USAGE.md`
+- Характер помощи: сборка пакета/launch, оформление commands.md/types.md/report, настройка CI
+- Как результат был проверен независимо: `colcon build`, `ros2 launch`, `node list`, `topic pub` / `topic info` до и после исправления имени топика
+
+Полные чаты и личные промпты не прикладываются.
