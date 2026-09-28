@@ -1,62 +1,35 @@
 # ROS-robotics
 
-Практикум ROS 2 (ПР01–ПР06). Среда: **WSL2**, Ubuntu 26.04, ROS 2 **lyrical**.
+WSL2, Ubuntu 26.04, ROS 2 **lyrical**. Kit: `v1-w03`.
 
-Course kit: `.course-kit/v1/VERSION` = `v1-w01`,
-SHA-256 `57866a9c98fa3abdec27b35a180697ee680bfb0f05cc015970ce306d6d849fea`.
-
-## ПР02 — пакет `turtle_bringup` и launch
-
-Из **корня** репозитория (`cd "$(git rev-parse --show-toplevel)"`):
+## ПР03 — нода `patrol`
 
 ```bash
 source /opt/ros/lyrical/setup.bash
 export ROS_DOMAIN_ID=16
-export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST   # после source
-```
-
-Сборка:
-
-```bash
-set -o pipefail
-colcon build --symlink-install --packages-select turtle_bringup \
-  2>&1 | tee evidence/pr02/build.txt
-```
-
-Запуск (терминал A):
-
-```bash
-source /opt/ros/lyrical/setup.bash
+export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
+colcon build --symlink-install --packages-select patrol turtle_bringup
 source install/setup.bash
-export ROS_DOMAIN_ID=16
-ros2 launch turtle_bringup sim.launch.py
 ```
 
-Перед запуском остановите старые `turtlesim`. В другом терминале:
-`ros2 node list --no-daemon --spin-time 2` → `/turtlesim`.
-Остановка: `Ctrl+C` в A (дочерний turtlesim завершается вместе с launch).
-
-Команда движения (B), тот же домен:
+Терминал A: `ros2 launch turtle_bringup sim.launch.py`  
+Терминал B:
 
 ```bash
-ros2 topic pub --once /turtle1/cmd_vel geometry_msgs/msg/Twist \
-  '{linear: {x: 1.0}, angular: {z: 0.5}}'
+ros2 run patrol patrol --ros-args -r cmd_vel:=/turtle1/cmd_vel
 ```
 
-Ошибочное имя `/cmd_vel` не доходит до подписчика; нужно `/turtle1/cmd_vel`.
-
-### Проверки ПР02
+Без remap команда уходит в `/cmd_vel` и turtlesim её не видит.
 
 ```bash
-python3 -m py_compile src/turtle_bringup/launch/sim.launch.py
-python3 .course-kit/v1/tools/check_practice.py PR02 --submission .
+python3 -m pytest src/patrol/test -v
+python3 .course-kit/v1/tools/check_practice.py PR03 --submission .
 ```
 
-## ПР01 — кратко
+## ПР02
 
-Домен 16, turtlesim + teleop, разрыв на домене 17. Evidence: `evidence/pr01/`.
+Пакет `turtle_bringup`, launch `sim.launch.py`. См. `evidence/pr02/`.
 
-## CI
+## ПР01
 
-`.github/workflows/ci.yml` — course kit, сборка `turtle_bringup`, проверка
-установленного `sim.launch.py`, `check_practice.py PR02`.
+Домены 16/17, turtlesim + teleop. См. `evidence/pr01/`.

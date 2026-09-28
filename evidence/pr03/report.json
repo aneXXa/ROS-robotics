@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "practice_id": "PR03",
+  "commit": "REPLACE_WITH_IMPLEMENTATION_SHA_AFTER_YOU_COMMIT",
+  "course_kit": {
+    "version": "v1-w03",
+    "archive_sha256": "7fbfd3e8161ab6c6ebefc7663efdaf77d9a7d490399743507f33dcefbd5ac522"
+  },
+  "commands": [
+    "source /opt/ros/lyrical/setup.bash",
+    "export ROS_DOMAIN_ID=16",
+    "export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST",
+    "colcon build --symlink-install --packages-select patrol",
+    "source install/setup.bash",
+    "python3 -m pytest src/patrol/test -v",
+    "ros2 launch turtle_bringup sim.launch.py",
+    "ros2 run patrol patrol",
+    "ros2 topic info /cmd_vel --verbose",
+    "ros2 topic info /turtle1/cmd_vel --verbose",
+    "ros2 run patrol patrol --ros-args -r cmd_vel:=/turtle1/cmd_vel",
+    "ros2 topic hz /turtle1/cmd_vel",
+    "python3 .course-kit/v1/tools/check_practice.py PR03 --submission ."
+  ],
+  "tests": [
+    {"name": "pytest: command_from_pose None -> zero Twist", "status": "passed"},
+    {"name": "pytest: command_from_pose Pose -> 0.5 / 0.3", "status": "passed"},
+    {"name": "colcon build patrol", "status": "passed"},
+    {"name": "broken: relative cmd_vel has pub, turtlesim not subscribed", "status": "passed"},
+    {"name": "fixed: remap cmd_vel:=/turtle1/cmd_vel; pose + ~10 Hz cmd", "status": "passed"}
+  ],
+  "defect": {
+    "reproducer": "ros2 run patrol patrol без remap. topic info /cmd_vel: Publisher=1 (patrol), Subscription=0. /turtle1/cmd_vel: Publisher=0, Subscription=1 (turtlesim). Черепаха не реагирует на patrol.",
+    "root_cause": "Издатель пишет в относительный cmd_vel (=/cmd_vel). Turtlesim слушает только /turtle1/cmd_vel. Тип Twist совпадает, имя топика — нет.",
+    "proof_after": "ros2 run patrol patrol --ros-args -r cmd_vel:=/turtle1/cmd_vel. topic info /turtle1/cmd_vel: 1 pub + 1 sub. Поза с ненулевыми скоростями. topic hz ≈ 10 Hz. После Ctrl+C скорости снова 0."
+  },
+  "claims": {
+    "public_tests_passed": true,
+    "defect_reproduced": true,
+    "defect_fixed": true
+  },
+  "time": {
+    "contact_academic_hours": 2,
+    "self_study_hours": 2
+  },
+  "ai_used": true
+}

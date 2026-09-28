@@ -3,8 +3,8 @@ name: ROS checks
 on: [push, pull_request]
 
 env:
-  COURSE_KIT_URL: https://ros.lms.ci.nsu.ru/downloads/robotics-course-kit-v1-w01-57866a9c98fa.tar.gz
-  COURSE_KIT_SHA256: 57866a9c98fa3abdec27b35a180697ee680bfb0f05cc015970ce306d6d849fea
+  COURSE_KIT_URL: https://ros.lms.ci.nsu.ru/downloads/robotics-course-kit-v1-w03-7fbfd3e8161a.tar.gz
+  COURSE_KIT_SHA256: 7fbfd3e8161ab6c6ebefc7663efdaf77d9a7d490399743507f33dcefbd5ac522
 
 jobs:
   test:
@@ -24,23 +24,29 @@ jobs:
           mkdir -p .course-kit
           tar -xzf course-kit.tar.gz -C .course-kit
 
-      - name: Ensure PR02 manifest
-        shell: bash
-        run: |
-          printf '%s\n' '{"id":"PR02","required_paths":["src/turtle_bringup/package.xml","src/turtle_bringup/setup.py","src/turtle_bringup/setup.cfg","src/turtle_bringup/resource/turtle_bringup","src/turtle_bringup/launch/sim.launch.py","evidence/pr02/build-empty.txt","evidence/pr02/build.txt","evidence/pr02/commands.md","evidence/pr02/types.md","evidence/pr02/report.json"],"required_claims":["public_tests_passed","defect_reproduced","defect_fixed"]}' \
-            > .course-kit/v1/practices/manifests/pr02.json
-
-      - name: Compile launch file
-        shell: bash
-        run: python3 -m py_compile src/turtle_bringup/launch/sim.launch.py
-
-      - name: Build turtle_bringup
+      - name: Adapt patrol Pose depend for Jazzy
         shell: bash
         run: |
           source /opt/ros/${ROS_DISTRO}/setup.bash
-          colcon build --symlink-install --packages-select turtle_bringup
-          test -f install/turtle_bringup/share/turtle_bringup/launch/sim.launch.py
+          if ! ros2 pkg prefix turtlesim_msgs >/dev/null 2>&1; then
+            sed -i 's/<depend>turtlesim_msgs<\/depend>/<depend>turtlesim<\/depend>/' src/patrol/package.xml
+          fi
 
-      - name: Check PR02 evidence
+      - name: Build packages
         shell: bash
-        run: python3 .course-kit/v1/tools/check_practice.py PR02 --submission .
+        run: |
+          source /opt/ros/${ROS_DISTRO}/setup.bash
+          colcon build --symlink-install --packages-select turtle_bringup patrol
+          test -f install/turtle_bringup/share/turtle_bringup/launch/sim.launch.py
+          test -f install/patrol/lib/patrol/patrol
+
+      - name: Unit tests patrol
+        shell: bash
+        run: |
+          source /opt/ros/${ROS_DISTRO}/setup.bash
+          source install/setup.bash
+          python3 -m pytest src/patrol/test -v
+
+      - name: Check PR03 evidence
+        shell: bash
+        run: python3 .course-kit/v1/tools/check_practice.py PR03 --submission .
