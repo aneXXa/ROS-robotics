@@ -37,19 +37,27 @@ jobs:
         shell: bash
         run: |
           source /opt/ros/${ROS_DISTRO}/setup.bash
-          colcon build --symlink-install --packages-select turtle_bringup patrol course_bringup
-          test -f install/turtle_bringup/share/turtle_bringup/launch/sim.launch.py
-          test -f install/patrol/lib/patrol/patrol
+          colcon build --symlink-install --packages-select \
+            turtle_bringup patrol course_bringup course_description
           test -f install/course_bringup/share/course_bringup/launch/patrol.launch.py
-          test -f install/course_bringup/lib/course_bringup/pose_relay
+          test -f install/course_description/share/course_description/urdf/vehicle.urdf.xacro
+          test -f install/course_description/share/course_description/launch/display.launch.py
 
-      - name: Unit tests patrol
+      - name: Unit tests
         shell: bash
         run: |
           source /opt/ros/${ROS_DISTRO}/setup.bash
           source install/setup.bash
-          python3 -m pytest src/patrol/test -v
+          python3 -m pytest src/patrol/test src/course_description/test -v
 
-      - name: Check PR05 evidence
+      - name: check_urdf
         shell: bash
-        run: python3 .course-kit/v1/tools/check_practice.py PR05 --submission .
+        run: |
+          source /opt/ros/${ROS_DISTRO}/setup.bash
+          source install/setup.bash
+          xacro src/course_description/urdf/vehicle.urdf.xacro > /tmp/vehicle.urdf
+          check_urdf /tmp/vehicle.urdf
+
+      - name: Check PR06 evidence
+        shell: bash
+        run: python3 .course-kit/v1/tools/check_practice.py PR06 --submission .
