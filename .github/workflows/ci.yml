@@ -3,8 +3,8 @@ name: ROS checks
 on: [push, pull_request]
 
 env:
-  COURSE_KIT_URL: https://ros.lms.ci.nsu.ru/downloads/robotics-course-kit-v1-w04-fec6b4e886c1.tar.gz
-  COURSE_KIT_SHA256: fec6b4e886c19146078bf69fbf90a19279a4cd33f656642395350b299efeb226
+  COURSE_KIT_URL: https://ros.lms.ci.nsu.ru/downloads/robotics-course-kit-v1-w06-6eda53e1c566.tar.gz
+  COURSE_KIT_SHA256: 6eda53e1c566f7f0a7e09d7afe1e5a6f3b98397175a7e57dede9a84c6d14d0fe
 
 jobs:
   test:
@@ -24,21 +24,24 @@ jobs:
           mkdir -p .course-kit
           tar -xzf course-kit.tar.gz -C .course-kit
 
-      - name: Adapt patrol Pose depend for Jazzy
+      - name: Adapt Pose depend for Jazzy
         shell: bash
         run: |
           source /opt/ros/${ROS_DISTRO}/setup.bash
           if ! ros2 pkg prefix turtlesim_msgs >/dev/null 2>&1; then
             sed -i 's/<depend>turtlesim_msgs<\/depend>/<depend>turtlesim<\/depend>/' src/patrol/package.xml
+            sed -i 's/<depend>turtlesim_msgs<\/depend>/<depend>turtlesim<\/depend>/' src/course_bringup/package.xml
           fi
 
       - name: Build packages
         shell: bash
         run: |
           source /opt/ros/${ROS_DISTRO}/setup.bash
-          colcon build --symlink-install --packages-select turtle_bringup patrol
+          colcon build --symlink-install --packages-select turtle_bringup patrol course_bringup
           test -f install/turtle_bringup/share/turtle_bringup/launch/sim.launch.py
           test -f install/patrol/lib/patrol/patrol
+          test -f install/course_bringup/share/course_bringup/launch/patrol.launch.py
+          test -f install/course_bringup/lib/course_bringup/pose_relay
 
       - name: Unit tests patrol
         shell: bash
@@ -47,6 +50,6 @@ jobs:
           source install/setup.bash
           python3 -m pytest src/patrol/test -v
 
-      - name: Check PR04 evidence
+      - name: Check PR05 evidence
         shell: bash
-        run: python3 .course-kit/v1/tools/check_practice.py PR04 --submission .
+        run: python3 .course-kit/v1/tools/check_practice.py PR05 --submission .
