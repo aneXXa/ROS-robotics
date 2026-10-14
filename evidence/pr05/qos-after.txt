@@ -1,0 +1,90 @@
+## fixed: best_effort echo receives sensor_pose
+Type: turtlesim_msgs/msg/Pose
+
+Publisher count: 1
+
+Node name: pose_relay
+Node namespace: /robot_a
+Topic type: turtlesim_msgs/msg/Pose
+Topic type hash: RIHS01_37b07ace09a0ed2c5b774b1410dec972dfd1d292de5656ebc2b075ac646e09c8
+Endpoint type: PUBLISHER
+GID: 01.0f.1a.0d.8c.0e.bd.b1.00.00.00.00.00.00.13.03
+QoS profile:
+  Reliability: BEST_EFFORT
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+Subscription count: 2
+
+Node name: pose_subscriber
+Node namespace: /robot_a
+Topic type: turtlesim_msgs/msg/Pose
+Topic type hash: RIHS01_37b07ace09a0ed2c5b774b1410dec972dfd1d292de5656ebc2b075ac646e09c8
+Endpoint type: SUBSCRIPTION
+GID: 01.0f.1a.0d.8d.0e.60.2a.00.00.00.00.00.00.13.04
+QoS profile:
+  Reliability: BEST_EFFORT
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+Node name: rosbag2_recorder
+Node namespace: /
+Topic type: turtlesim_msgs/msg/Pose
+Topic type hash: RIHS01_37b07ace09a0ed2c5b774b1410dec972dfd1d292de5656ebc2b075ac646e09c8
+Endpoint type: SUBSCRIPTION
+GID: 01.0f.1a.0d.8e.0e.8b.c0.00.00.00.00.00.00.26.04
+QoS profile:
+  Reliability: BEST_EFFORT
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+## live echo best_effort:
+x: 5.444485187530518
+y: 8.875011444091797
+theta: -3.0863852500915527
+linear_velocity: 0.5
+angular_velocity: 0.30000001192092896
+---
+live_echo_exit=0
+
+## ros2 bag info evidence/pr05/bag
+
+Files:             0_bag_2026_10_14-16_42_23.mcap
+Bag size:          75.6 KiB
+Storage id:        mcap
+ROS Distro:        lyrical
+Duration:          16.337797051s
+Start:             Oct 14 2026 16:42:23.863819055 (1791970943.863819055)
+End:               Oct 14 2026 16:42:40.201616106 (1791970960.201616106)
+Messages:          1022
+Topic information: Topic: /robot_a/sensor_pose | Type: turtlesim_msgs/msg/Pose | Count: 1022 | Serialization Format: cdr
+Services:          0
+Service information: 
+Actions:           0
+Action information: 
+
+## replay: reliable echo (expect incompatible / no msg)
+[WARN] [1791970975.497473951] [_ros2cli_4060]: New publisher discovered on topic '/robot_a/sensor_pose', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY
+!rclpy.ok()
+replay_reliable_exit=0
+
+## replay: best_effort echo (expect message)
+x: 7.176103115081787
+y: 7.5311150550842285
+theta: 1.7616000175476074
+linear_velocity: 0.5
+angular_velocity: 0.30000001192092896
+---
+replay_best_effort_exit=0
