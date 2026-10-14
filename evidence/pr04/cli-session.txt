@@ -1,0 +1,41 @@
+=== param list ===
+  linear_speed
+  publish_hz
+  start_type_description_service
+  turn_rate
+  use_sim_time
+
+=== defaults ===
+Double value is: 10.0
+Double value is: 0.5
+Double value is: 0.3
+
+=== hz before set 5 ===
+usage: ros2 [-h] [--use-python-default-buffering]
+            Call `ros2 <command> -h` for more detailed usage. ...
+ros2: error: unrecognized arguments: --no-daemon
+
+=== set publish_hz 5.0 ===
+Set parameter successful
+Double value is: 5.0
+
+=== hz after set 5 ===
+usage: ros2 [-h] [--use-python-default-buffering]
+            Call `ros2 <command> -h` for more detailed usage. ...
+ros2: error: unrecognized arguments: --no-daemon
+
+=== set publish_hz 0.0 (expect reject) ===
+Double value is: 5.0
+
+=== set publish_hz -1.0 ===
+
+=== set publish_hz nan ===
+Double value is: 5.0
+
+=== set linear_speed 0.8 / turn_rate -0.5 ===
+Set parameter successful
+Set parameter successful
+
+=== service clear ===
+
+=== action list ===

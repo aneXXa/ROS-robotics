@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "practice_id": "PR04",
+  "commit": "0000000000000000000000000000000000000000",
+  "course_kit": {
+    "version": "v1-w04",
+    "archive_sha256": "fec6b4e886c19146078bf69fbf90a19279a4cd33f656642395350b299efeb226"
+  },
+  "commands": [
+    "source /opt/ros/lyrical/setup.bash",
+    "export ROS_DOMAIN_ID=16",
+    "export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST",
+    "colcon build --symlink-install --packages-select patrol",
+    "source install/setup.bash",
+    "python3 -m pytest src/patrol/test -v",
+    "ros2 run turtlesim turtlesim_node",
+    "ros2 run patrol patrol --ros-args -r cmd_vel:=/turtle1/cmd_vel",
+    "ros2 param get /patrol publish_hz",
+    "ros2 param set /patrol publish_hz 5.0",
+    "ros2 topic hz /turtle1/cmd_vel",
+    "ros2 param set /patrol publish_hz 0.0",
+    "ros2 service call /clear std_srvs/srv/Empty",
+    "ros2 action list -t",
+    "python3 .course-kit/v1/tools/check_practice.py PR04 --submission ."
+  ],
+  "tests": [
+    {"name": "pytest: publish_hz 10→5 period 0.1→0.2", "status": "passed"},
+    {"name": "pytest: publish_hz rejects 0, negative, NaN", "status": "passed"},
+    {"name": "pytest: linear_speed / turn_rate bounds", "status": "passed"},
+    {"name": "colcon build patrol", "status": "passed"},
+    {"name": "live: publish_hz 5 → topic hz ≈ 5", "status": "passed"},
+    {"name": "live: publish_hz 0 rejected, value stays 5", "status": "passed"},
+    {"name": "service /clear + action rotate_absolute", "status": "passed"}
+  ],
+  "defect": {
+    "reproducer": "Без validate_publish_hz: timer_period_sec(0.0) → ZeroDivisionError (1/0). Нода падает при смене частоты на 0.",
+    "root_cause": "Период таймера считается как 1/publish_hz. Ноль, отрицательное и NaN не являются допустимой частотой; проверка должна отклонять значение до destroy/create таймера.",
+    "proof_after": "ros2 param set /patrol publish_hz 0.0 → failed [1,30]; get publish_hz остаётся 5.0; topic hz ≈ 5. pytest: validate_publish_hz(0/neg/nan) is None."
+  },
+  "claims": {
+    "public_tests_passed": true,
+    "defect_reproduced": true,
+    "defect_fixed": true
+  },
+  "time": {
+    "contact_academic_hours": 2,
+    "self_study_hours": 2
+  },
+  "ai_used": true
+}

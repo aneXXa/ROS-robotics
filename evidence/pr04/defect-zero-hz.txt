@@ -1,0 +1,2 @@
+ZeroDivisionError: division by zero
+refusal: publish_hz=0 without validation breaks 1/publish_hz
