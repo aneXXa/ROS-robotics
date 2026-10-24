@@ -15,7 +15,6 @@ from course_simulation.drive_logic import ackermann_to_twist
 class DriveAdapter(Node):
     def __init__(self) -> None:
         super().__init__('drive_adapter')
-        self.declare_parameter('use_sim_time', True)
         qos = QoSProfile(
             reliability=QoSReliabilityPolicy.RELIABLE,
             history=QoSHistoryPolicy.KEEP_LAST,
