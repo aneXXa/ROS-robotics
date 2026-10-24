@@ -1,0 +1,198 @@
+## topic info -v /vehicle/imu (fixed)
+Type: sensor_msgs/msg/Imu
+
+Publisher count: 1
+
+Node name: ros_gz_bridge
+Node namespace: /
+Topic type: sensor_msgs/msg/Imu
+Topic type hash: RIHS01_7d9a00ff131080897a5ec7e26e315954b8eae3353c3f995c55faf71574000b5b
+Endpoint type: PUBLISHER
+GID: 01.0f.1a.0d.aa.83.c7.e4.00.00.00.00.00.00.17.03
+QoS profile:
+  Reliability: BEST_EFFORT
+  History (Depth): KEEP_LAST (5)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+Subscription count: 0
+
+## topic info -v /vehicle/scan
+Type: sensor_msgs/msg/LaserScan
+
+Publisher count: 1
+
+Node name: ros_gz_bridge
+Node namespace: /
+Topic type: sensor_msgs/msg/LaserScan
+Topic type hash: RIHS01_64c191398013af96509d518dac71d5164f9382553fce5c1f8cca5be7924bd828
+Endpoint type: PUBLISHER
+GID: 01.0f.1a.0d.aa.83.c7.e4.00.00.00.00.00.00.16.03
+QoS profile:
+  Reliability: BEST_EFFORT
+  History (Depth): KEEP_LAST (5)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+Subscription count: 0
+
+## topic info -v /vehicle/gz_cmd_vel
+Type: geometry_msgs/msg/Twist
+
+Publisher count: 1
+
+Node name: drive_adapter
+Node namespace: /
+Topic type: geometry_msgs/msg/Twist
+Topic type hash: RIHS01_9c45bf16fe0983d80e3cfe750d6835843d265a9a6c46bd2e609fcddde6fb8d2a
+Endpoint type: PUBLISHER
+GID: 01.0f.1a.0d.ac.83.23.41.00.00.00.00.00.00.14.03
+QoS profile:
+  Reliability: RELIABLE
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+Subscription count: 1
+
+Node name: ros_gz_bridge
+Node namespace: /
+Topic type: geometry_msgs/msg/Twist
+Topic type hash: RIHS01_9c45bf16fe0983d80e3cfe750d6835843d265a9a6c46bd2e609fcddde6fb8d2a
+Endpoint type: SUBSCRIPTION
+GID: 01.0f.1a.0d.aa.83.c7.e4.00.00.00.00.00.00.14.04
+QoS profile:
+  Reliability: RELIABLE
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+## odom_gz frames
+header:
+  stamp:
+    sec: 127
+    nanosec: 287000000
+  frame_id: course_ackermann/odom
+child_frame_id: course_ackermann/base_link
+pose:
+  pose:
+    position:
+      x: 2.6497017988695295
+      y: 16.702162056944854
+      z: 0.0
+    orientation:
+      x: 0.0
+      y: 0.0
+## odom normalized
+header:
+  stamp:
+    sec: 128
+    nanosec: 507000000
+  frame_id: odom
+child_frame_id: base_link
+pose:
+  pose:
+    position:
+      x: 1.929872621703678
+      y: 16.83371971657533
+      z: 0.0
+    orientation:
+      x: 0.0
+      y: 0.0
+## camera once frame
+header:
+  stamp:
+    sec: 130
+    nanosec: 0
+  frame_id: camera_link
+height: 360
+width: 640
+encoding: rgb8
+is_bigendian: 0
+step: 1920
+data:
+- 100
+## scan once frame
+header:
+  stamp:
+    sec: 131
+    nanosec: 400000000
+  frame_id: lidar_link
+angle_min: -3.141590118408203
+angle_max: 3.141590118408203
+angle_increment: 0.017501894384622574
+time_increment: 0.0
+scan_time: 0.0
+range_min: 0.11999999731779099
+range_max: 20.0
+## hz measurements (wall clock; RTF < 1)
+### /clock
+average rate: 437.484
+	min: 0.000s max: 0.020s std dev: 0.00189s window: 432
+average rate: 435.431
+### /vehicle/scan
+average rate: 2.163
+	min: 0.462s max: 0.462s std dev: 0.00000s window: 1
+average rate: 2.279
+### /vehicle/imu
+average rate: 42.162
+	min: 0.016s max: 0.050s std dev: 0.00898s window: 41
+### /vehicle/camera/image_raw
+average rate: 4.637
+	min: 0.215s max: 0.217s std dev: 0.00099s window: 2
+### /vehicle/odom
+average rate: 21.086
+	min: 0.035s max: 0.065s std dev: 0.01095s window: 20
+average rate: 20.984
+## tf2_echo
+At time 145.7000000
+- Translation: [-6.349, 12.597, 0.000]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, -0.857, 0.515]
+- Rotation: in RPY (radian) [0.000, 0.000, -2.060]
+- Rotation: in RPY (degree) [0.000, 0.000, -118.049]
+- Matrix:
+ -0.470  0.883  0.000 -6.349
+ -0.883 -0.470 -0.000 12.597
+ -0.000  0.000  1.000  0.000
+  0.000  0.000  0.000  1.000
+At time 145.467000000
+- Translation: [-6.474, 12.351, 0.000]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, -0.849, 0.529]
+- Rotation: in RPY (radian) [0.000, 0.000, -2.027]
+- Rotation: in RPY (degree) [0.000, 0.000, -116.110]
+- Matrix:
+ -0.440  0.898  0.000 -6.474
+ -0.898 -0.440 -0.000 12.351
+ -0.000  0.000  1.000  0.000
+  0.000  0.000  0.000  1.000
+[ros2run]: Received signal:  Terminated
+[INFO] [1792825842.123120780] [rclcpp]: signal_handler(signum=15)
+[INFO] [1792825842.135532863] [rclcpp]: signal_handler(signum=15)
+## gz cmd_vel
+linear {
+  x: 0.60000002384185791
+}
+angular {
+  z: 0.075251008183132087
+}
+
+linear {
+  x: 0.60000002384185791
+}
+angular {
+  z: 0.075251008183132087
+}
+
+linear {

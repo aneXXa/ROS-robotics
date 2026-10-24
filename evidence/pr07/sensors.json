@@ -1,0 +1,52 @@
+{
+  "lidar_param_change": "update_rate 10 → 5 Hz in models/course_ackermann/model.sdf",
+  "rtf_note": "Headless WSL: wall-clock hz ниже SDF update_rate из-за RTF≈0.3; bag duration по /clock ≥30 с.",
+  "odom_gz_frames": {
+    "header.frame_id": "course_ackermann/odom",
+    "child_frame_id": "course_ackermann/base_link"
+  },
+  "odom_normalized_frames": {
+    "header.frame_id": "odom",
+    "child_frame_id": "base_link",
+    "tf_owner": "odom_adapter"
+  },
+  "sensors": [
+    {
+      "topic": "/vehicle/camera/image_raw",
+      "type": "sensor_msgs/msg/Image",
+      "frame_id": "camera_link",
+      "time_source": "sim_time (/clock)",
+      "claimed_hz": 20,
+      "measured_hz_wall": 2.8,
+      "qos": "SENSOR_DATA / best_effort"
+    },
+    {
+      "topic": "/vehicle/scan",
+      "type": "sensor_msgs/msg/LaserScan",
+      "frame_id": "lidar_link",
+      "time_source": "sim_time (/clock)",
+      "claimed_hz": 5,
+      "measured_hz_wall": "~1.5 (RTF-limited; bag count 212 / 42.6s ≈ 5 Hz sim)",
+      "qos": "SENSOR_DATA / best_effort"
+    },
+    {
+      "topic": "/vehicle/imu",
+      "type": "sensor_msgs/msg/Imu",
+      "frame_id": "imu_link",
+      "time_source": "sim_time (/clock)",
+      "claimed_hz": 100,
+      "measured_hz_wall": "~30 (RTF-limited; bag 4257/42.6s ≈ 100 Hz sim)",
+      "qos": "SENSOR_DATA / best_effort"
+    },
+    {
+      "topic": "/vehicle/odom",
+      "type": "nav_msgs/msg/Odometry",
+      "frame_id": "odom",
+      "child_frame_id": "base_link",
+      "time_source": "sim_time (/clock)",
+      "claimed_hz": 50,
+      "measured_hz_wall": "~15 (bag 2129/42.6s ≈ 50 Hz sim)",
+      "qos": "reliable"
+    }
+  ]
+}

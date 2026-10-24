@@ -31,3 +31,11 @@
 - Компоненты: `course_description` (Xacro/URDF, display.launch), `evidence/pr06/*`, CI
 - Характер помощи: параметризованная модель Ackermann, tf_static QoS, тест parent lidar, дефект camera_link
 - Проверка: check_urdf; pytest parent=base_link; tf-qos transient_local vs volatile; tf2_echo 0.28/0.38
+
+## PR07
+
+- Использован ИИ: да
+- Модель / среда: Cursor Agent, Cursor IDE
+- Компоненты: `course_simulation` (launch, bridge, drive/odom adapters), `evidence/pr07/*`, CI kit v1-w07
+- Характер помощи: headless Gazebo+ros_gz, Ackermann→Twist, нормализация odom/tf, дефект direction IMU, bag
+- Проверка: pytest 7; headless /clock; gz_cmd_vel; odom frames; bag 42.6s / 7 topics; defect IMU pub=0

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "practice_id": "PR07",
+  "commit": "6229f2ac793794780402b57dcb409d3bcc587ec2",
+  "course_kit": {
+    "version": "v1-w07",
+    "archive_sha256": "9b7fdd5424d3d97e47d51dbe23064934585e62135dc2902844dd679529bda929"
+  },
+  "commands": [
+    "source /opt/ros/lyrical/setup.bash",
+    "export ROS_DOMAIN_ID=16",
+    "export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST",
+    "export GZ_SIM_RESOURCE_PATH=$PWD/src/course_simulation/models",
+    "colcon build --symlink-install --packages-up-to course_simulation",
+    "source install/setup.bash",
+    "ros2 launch course_simulation simulation.launch.py headless:=true",
+    "ros2 topic echo /clock --once",
+    "ros2 topic echo /vehicle/gz_cmd_vel --once",
+    "ros2 topic echo /vehicle/odom --once",
+    "ros2 topic info -v /vehicle/imu",
+    "ros2 launch course_simulation simulation.launch.py bridge_config:=$PWD/src/course_simulation/config/bridge-broken.yaml",
+    "timeout 4 ros2 topic echo /vehicle/imu --once",
+    "ros2 bag record --storage mcap --use-sim-time -o fixtures/pr07-sensors --topics /vehicle/camera/image_raw /vehicle/scan /vehicle/imu /vehicle/odom /tf /tf_static /clock",
+    "ros2 bag info fixtures/pr07-sensors",
+    "python3 -m pytest src/course_simulation/test -v",
+    "python3 .course-kit/v1/tools/check_practice.py PR07 --submission ."
+  ],
+  "tests": [
+    {"name": "pytest drive_logic + odom frames (7)", "status": "passed"},
+    {"name": "colcon build course_simulation", "status": "passed"},
+    {"name": "headless gz + /clock live", "status": "passed"},
+    {"name": "drive/safe → gz_cmd_vel → Gazebo (cmd visible)", "status": "passed"},
+    {"name": "odom_gz course_ackermann/* → odom/base_link + tf", "status": "passed"},
+    {"name": "bag ≥30s sim, 7 topics non-zero", "status": "passed"},
+    {"name": "defect IMU ROS_TO_GZ: pub=0, echo timeout", "status": "passed"}
+  ],
+  "defect": {
+    "reproducer": "bridge-broken.yaml: /vehicle/imu direction=ROS_TO_GZ. topic info: Publisher=0, Subscription=1 (bridge). echo --once timeout. Gazebo IMU есть, ROS данных нет (defect-imu.txt).",
+    "root_cause": "Неверное direction в YAML: bridge ждёт ROS→GZ вместо GZ→ROS. Имя топика совпадает, но поток развёрнут. Второй мост не нужен.",
+    "proof_after": "bridge.yaml direction=GZ_TO_ROS. topic info: Publisher=1 (ros_gz_bridge), BEST_EFFORT. echo получает Imu с frame_id=imu_link. Bag содержит /vehicle/imu."
+  },
+  "claims": {
+    "public_tests_passed": true,
+    "defect_reproduced": true,
+    "defect_fixed": true,
+    "headless_verified": true,
+    "recording_verified": true,
+    "odometry_tf_owned": true
+  },
+  "time": {
+    "contact_academic_hours": 2,
+    "self_study_hours": 2.5
+  },
+  "ai_used": true
+}

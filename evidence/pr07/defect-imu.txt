@@ -1,0 +1,46 @@
+## DEFECT: bridge-broken.yaml IMU direction=ROS_TO_GZ (should be GZ_TO_ROS)
+## YAML snippet:
+- ros_topic_name: /vehicle/imu
+  gz_topic_name: /vehicle/imu
+  ros_type_name: sensor_msgs/msg/Imu
+  gz_type_name: gz.msgs.IMU
+  direction: ROS_TO_GZ
+  qos_profile: SENSOR_DATA
+- ros_topic_name: /vehicle/camera/image_raw
+## ros2 topic info -v /vehicle/imu
+Type: sensor_msgs/msg/Imu
+
+Publisher count: 0
+
+Subscription count: 1
+
+Node name: ros_gz_bridge
+Node namespace: /
+Topic type: sensor_msgs/msg/Imu
+Topic type hash: RIHS01_7d9a00ff131080897a5ec7e26e315954b8eae3353c3f995c55faf71574000b5b
+Endpoint type: SUBSCRIPTION
+GID: 01.0f.1a.0d.c6.89.31.2f.00.00.00.00.00.00.17.04
+QoS profile:
+  Reliability: BEST_EFFORT
+  History (Depth): KEEP_LAST (5)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+## echo --once (expect no message / timeout)
+echo_exit=0
+## gz topic still has IMU source
+Publishers [Address, Message Type]:
+  tcp://172.27.23.193:41297, gz.msgs.IMU
+  tcp://172.27.23.193:33333, gz.msgs.IMU
+No subscribers on topic [/vehicle/imu]
+## compare fixed bridge direction
+- ros_topic_name: /vehicle/imu
+  gz_topic_name: /vehicle/imu
+  ros_type_name: sensor_msgs/msg/Imu
+  gz_type_name: gz.msgs.IMU
+  direction: GZ_TO_ROS
+  qos_profile: SENSOR_DATA
+- ros_topic_name: /vehicle/camera/image_raw
