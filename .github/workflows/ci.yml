@@ -3,8 +3,8 @@ name: ROS checks
 on: [push, pull_request]
 
 env:
-  COURSE_KIT_URL: https://ros.lms.ci.nsu.ru/downloads/robotics-course-kit-v1-w06-6eda53e1c566.tar.gz
-  COURSE_KIT_SHA256: 6eda53e1c566f7f0a7e09d7afe1e5a6f3b98397175a7e57dede9a84c6d14d0fe
+  COURSE_KIT_URL: https://ros.lms.ci.nsu.ru/downloads/robotics-course-kit-v1-w07-9b7fdd5424d3.tar.gz
+  COURSE_KIT_SHA256: 9b7fdd5424d3d97e47d51dbe23064934585e62135dc2902844dd679529bda929
 
 jobs:
   test:
@@ -24,6 +24,12 @@ jobs:
           mkdir -p .course-kit
           tar -xzf course-kit.tar.gz -C .course-kit
 
+      - name: Install PR07 deps (Jazzy)
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install -y "ros-${ROS_DISTRO}-ackermann-msgs" "ros-${ROS_DISTRO}-ros-gz" || true
+
       - name: Adapt Pose depend for Jazzy
         shell: bash
         run: |
@@ -37,27 +43,18 @@ jobs:
         shell: bash
         run: |
           source /opt/ros/${ROS_DISTRO}/setup.bash
-          colcon build --symlink-install --packages-select \
-            turtle_bringup patrol course_bringup course_description
-          test -f install/course_bringup/share/course_bringup/launch/patrol.launch.py
-          test -f install/course_description/share/course_description/urdf/vehicle.urdf.xacro
-          test -f install/course_description/share/course_description/launch/display.launch.py
+          colcon build --symlink-install --packages-up-to course_simulation
+          test -f install/course_simulation/share/course_simulation/launch/simulation.launch.py
+          test -f install/course_simulation/lib/course_simulation/drive_adapter
+          test -f install/course_simulation/lib/course_simulation/odom_adapter
 
       - name: Unit tests
         shell: bash
         run: |
           source /opt/ros/${ROS_DISTRO}/setup.bash
           source install/setup.bash
-          python3 -m pytest src/patrol/test src/course_description/test -v
+          python3 -m pytest src/patrol/test src/course_description/test src/course_simulation/test -v
 
-      - name: check_urdf
+      - name: Check PR07 evidence
         shell: bash
-        run: |
-          source /opt/ros/${ROS_DISTRO}/setup.bash
-          source install/setup.bash
-          xacro src/course_description/urdf/vehicle.urdf.xacro > /tmp/vehicle.urdf
-          check_urdf /tmp/vehicle.urdf
-
-      - name: Check PR06 evidence
-        shell: bash
-        run: python3 .course-kit/v1/tools/check_practice.py PR06 --submission .
+        run: python3 .course-kit/v1/tools/check_practice.py PR07 --submission .

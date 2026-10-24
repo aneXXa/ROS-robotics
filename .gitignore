@@ -5,6 +5,7 @@ robotics-course-kit-*.sha256.txt
 
 # Local rosbag2 recordings (metadata copied into evidence)
 evidence/**/bag/
+fixtures/
 *.mcap
 
 # ROS2 build artifacts
